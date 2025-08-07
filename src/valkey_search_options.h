@@ -13,8 +13,8 @@ namespace options {
 
 namespace config = vmsdk::config;
 
-/// Return the value of the Query String Depth configuration
-uint32_t GetQueryStringDepth();
+/// Return the value of the Query String Bytes configuration
+uint32_t GetQueryStringBytes();
 
 /// Return the value of the Query String Bytes configuration
 uint32_t GetQueryStringBytes();
@@ -33,10 +33,20 @@ config::Number& GetWriterThreadCount();
 /// Return an immutable reference to the "use-coordinator" flag
 const config::Boolean& GetUseCoordinator();
 
+/// Return the configuration entry for skipping vector index RDB loading
+const config::Boolean& GetSkipIndexLoad();
+
+/// Return a mutable reference for testing
+config::Boolean& GetSkipIndexLoadMutable();
+
 /// Return the log level
 config::Enum& GetLogLevel();
 
 /// Reset the state of the options (mainly needed for testing)
 absl::Status Reset();
+
+/// Allow delivery of partial results when timeout occurs
+const config::Boolean& GetEnablePartialResults();
+
 }  // namespace options
 }  // namespace valkey_search
