@@ -245,6 +245,7 @@ class ValkeySearchTestCaseBase(ValkeySearchTestCaseCommon):
             # Use external server to test core functionality for Valkey-Bundle
             external_host = os.environ.get("VALKEY_HOST", "localhost")
             external_port = int(os.environ.get("VALKEY_PORT", "6379"))
+            external_db = int(os.environ.get("VALKEY_TEST_DB", "15"))
             testdir = f"{LOGS_DIR}/{test_name}"
             os.makedirs(testdir, exist_ok=True)
             self.server, self.client = self.create_server(
@@ -253,7 +254,8 @@ class ValkeySearchTestCaseBase(ValkeySearchTestCaseCommon):
                 port=external_port,
                 external_server=True
             )
-            self.client.flushall()
+            self.client.select(external_db)
+            self.client.flushdb()
             self.rg = None
             self.nodes: List[Node] = [Node(client=self.client, server=self.server)]
         else:
@@ -278,7 +280,7 @@ class ValkeySearchTestCaseBase(ValkeySearchTestCaseCommon):
 
         # Cleanup
         if use_external:
-            self.client.flushall()
+            self.client.flushdb()
         else:
             ReplicationGroup.cleanup(self.rg)
 
@@ -333,9 +335,13 @@ class ValkeySearchTestCaseBase(ValkeySearchTestCaseCommon):
         return Node(client=client, server=server, logfile=logfile)
 
     def get_replica_connection(self, index) -> Valkey:
+        if self.rg is None:
+            pytest.skip("Replica connection not available in external server mode")
         return self.rg.get_replica_connection(index)
 
     def get_primary_connection(self) -> Valkey:
+        if self.rg is None:
+            return self.client
         return self.rg.get_primary_connection()
 
 def EnableDebugMode(config: List[str]):
